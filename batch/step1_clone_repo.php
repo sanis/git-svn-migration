@@ -61,7 +61,7 @@ function convertSVNtoGit()
 
     // checkout svn project into git repo
     $cmd = implode(" ", array(
-        'git-svn',
+        'git svn',
         'clone',
         '--authors-file',
         $authorsFile,
@@ -119,7 +119,11 @@ function fixEmptyDirectories()
             continue;
         $dir = substr($dir, 1);
         $notempty = $dir . '/.notempty';
-        touch(REPOS_DIR . REPO_NAME . $notempty);
+
+        if (!file_exists($dir)) {
+            mkdir($dir);
+        }
+        file_put_contents(REPOS_DIR . REPO_NAME . $notempty, '');
 
         // force an exception for .notempty file if the content of the directory is ignored
         $ret[] = '!' . $notempty;
@@ -127,8 +131,12 @@ function fixEmptyDirectories()
     }
 
     $gitignorefilename = REPOS_DIR . REPO_NAME . '/.gitignore';
-    if (!file_exists($gitignorefilename))
-        touch($gitignorefilename);
+    if (!file_exists($gitignorefilename)) {
+        if (!file_exists(REPOS_DIR . REPO_NAME)) {
+            mkdir(REPOS_DIR . REPO_NAME);
+        }
+        file_put_contents($gitignorefilename, '');
+    }
 
     $ret = implode("\n", $ret);
     $ret = file_get_contents($gitignorefilename) . "\n" . $ret;
